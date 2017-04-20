@@ -63,7 +63,7 @@ def check_phone_number(string_to_search):
 		result = re.search(regular_expression, string_to_search)
 		if result:
 			result = result.group()
-			result= result[-10:]
+			result = result[-10:]
 		return result
     except Exception, exception_instance:
         logging.error('Issue parsing phone number: ' + string_to_search + str(exception_instance))
@@ -95,20 +95,23 @@ def check_email(string_to_search):
 Create master for PIN code
 """
 def pin_code_master():
-	df= Pin_code_list
-	list1= df[["Taluk","pincode","Districtname","statename","Circle"]]
-	list1["Type"]="Taluk"
+	df = Pin_code_list
+	list1 = df[["Taluk","pincode","Districtname","statename","Circle"]]
+	list1["Type"] = "Taluk"
 	list1.columns = ['location','pincode',"Districtname","statename","Circle","Type"]
 
-	list2= df[["Districtname","pincode","Districtname","statename","Circle"]]
-	list2["Type"]="District"
+	list2 = df[["Districtname","pincode","Districtname","statename","Circle"]]
+	list2["Type"] ="District"
 	list2.columns = ['location','pincode',"Districtname","statename","Circle","Type"]
-	list3= df[["statename","pincode","Districtname","statename","Circle"]]
-	list3["Type"]="State"
+	
+	list3 = df[["statename","pincode","Districtname","statename","Circle"]]
+	list3["Type"] ="State"
 	list3.columns = ['location','pincode',"Districtname","statename","Circle","Type"]
+	
 	frames = [list2, list1, list3]
-	list_master= pd.concat(frames)
-	list_master["location"]= list_master["location"].str.lower()
+	
+	list_master = pd.concat(frames)
+	list_master["location"] = list_master["location"].str.lower()
 
 	return list_master
 
@@ -149,32 +152,32 @@ Then check identify location names and their pin code
 """
 def check_keywork_address_pin(string_to_search):
 	try:
-		pos1= re.search(r"(Place: |Address | Add:| ADDRESS: |Place )", string_to_search,re.IGNORECASE)
-		pos1= pos1.span()[1]
-		string_to_search1=string_to_search[pos1: pos1+300] ##need to take care of wide space and special characters
+		pos1 = re.search(r"(Place: |Address | Add:| ADDRESS: |Place )", string_to_search,re.IGNORECASE)
+		pos1 = pos1.span()[1]
+		string_to_search1 = string_to_search[pos1: pos1+300] ##need to take care of wide space and special characters
 	except:
-		string_to_search1= string_to_search
+		string_to_search1 = string_to_search
 
 	##create pin code list
-	Location_list= pin_code_master()
-	Location_list1= Location_list["location"].tolist()
+	Location_list = pin_code_master()
+	Location_list1 = Location_list["location"].tolist()
 
 	##convert string to search to a list
-	string_to_search1=re.sub("[^^A-Za-z0-9]", " ", string_to_search1)
-	listof_string_to_search= string_to_search1.split()
-	listof_string_to_search= [x.lower() for x in listof_string_to_search]
+	string_to_search1 = re.sub("[^^A-Za-z0-9]", " ", string_to_search1)
+	listof_string_to_search = string_to_search1.split()
+	listof_string_to_search = [x.lower() for x in listof_string_to_search]
 	##match the string
 	try:
-		loc_type=["District","Taluk","State"]
+		loc_type = ["District","Taluk","State"]
 		for k in range(0,len(loc_type)):
-			Location_list2=Location_list[Location_list["Type"]==loc_type[k]]
-			Location_list2=Location_list2['location']
+			Location_list2 = Location_list[Location_list["Type"]==loc_type[k]]
+			Location_list2 = Location_list2['location']
 			list3 = set(listof_string_to_search)&set(Location_list2)
 			if list3:
-				list3= list(list3)[0]
+				list3 = list(list3)[0]
 				Location_list2 = Location_list[Location_list['location'] == list3].reset_index(drop=True)
-				pin_number= Location_list2.iloc[0]["pincode"]
-				location= Location_list2.iloc[0]["location"]
+				pin_number = Location_list2.iloc[0]["pincode"]
+				location = Location_list2.iloc[0]["location"]
 
 			continue
 		return pin_number
@@ -183,25 +186,24 @@ def check_keywork_address_pin(string_to_search):
 		logging.error('Issue parsing area pin: ' + string_to_search + str(exception_instance))
 		#return None
 
-
 """
 Function to return final PINCODE &LOCATION
 """
 def return_pin_location(string_to_search):
-	Location_list= pin_code_master()
-	pin_number= check_area_pin(string_to_search)
-	check=1
+	Location_list = pin_code_master()
+	pin_number = check_area_pin(string_to_search)
+	check = 1
 	if pin_number:
-		pin_number=pin_number
+		pin_number = pin_number
 	else:
-		pin_number= check_keywork_address_pin(string_to_search)
-		check=2
+		pin_number = check_keywork_address_pin(string_to_search)
+		check = 2
 	try:
 		Location_list2 = Location_list[Location_list['pincode'] == int(pin_number)].reset_index(drop=True)
-		State= Location_list2.iloc[0]["statename"]
-		District= Location_list2.iloc[0]["Districtname"]
-		Circle= Location_list2.iloc[0]["Circle"]
-		list_of_values= [pin_number,District,State,check,Circle]
+		State = Location_list2.iloc[0]["statename"]
+		District = Location_list2.iloc[0]["Districtname"]
+		Circle = Location_list2.iloc[0]["Circle"]
+		list_of_values = [pin_number,District,State,check,Circle]
 		return list_of_values
 	except Exception, exception_instance:
 		logging.error('Issue parsing area pin: ' + string_to_search + str(exception_instance))
@@ -212,20 +214,20 @@ Function for calculating date of birth through new method
 """
 def check_date_of_birth(string_to_search):
 	try:
-		pos1= re.search(r"(Birth | birth| BIRTH | DOB | D.O.B)", string_to_search,re.IGNORECASE)
-		pos1= pos1.span()[1]
-		string_to_search=string_to_search[pos1: pos1+500]
+		pos1 = re.search(r"(Birth | birth| BIRTH | DOB | D.O.B)", string_to_search,re.IGNORECASE)
+		pos1 = pos1.span()[1]
+		string_to_search = string_to_search[pos1: pos1+500]
 	except:
-		string_to_search=string_to_search
+		string_to_search = string_to_search
 	try:
 		regular_expression = re.compile(r'(\d{4})')
 		result = re.search(regular_expression, string_to_search)
 		if result:
 			result = result.group()
 			if (int(result)<2000):
-				result=result
+				result = result
 			else:
-				result=""
+				result = ""
 
 		return result
 
@@ -241,16 +243,16 @@ if result available then pass result
 else check for any 4 digit number . Check wheather its more that 2000 . consider it as date for experience and then estimate DOB
 """
 def return_year_of_birth(string_to_search):
-	yob= check_date_of_birth(string_to_search)
-	if yob=="":
+	yob = check_date_of_birth(string_to_search)
+	if yob == "":
 		try:
 			regular_expression= re.compile('\\b'+'(\d{4})'+'\\b',re.M|re.I)
 			result = regular_expression.findall(string_to_search)
 			result = map(int, result)
-			result= list(filter(lambda x: x>2000, result))
-			result=min(result)
-			yop=result
-			yob=yop-20
+			result = list(filter(lambda x: x>2000, result))
+			result = min(result)
+			yop = result
+			yob = yop-20
 		except:
 			yob=""
 	return yob
@@ -275,18 +277,18 @@ Function to check presence of a table
 """
 def fun_istable(cv_text):
     # get all percentage in cv
-    percentage=re.findall(r'[0-9\.]{0,3}\d{1,2}[\s\.]{0,1}%', cv_text)
+    percentage = re.findall(r'[0-9\.]{0,3}\d{1,2}[\s\.]{0,1}%', cv_text)
 
     #check count of percentage
     if(len(percentage)>=2):
-        percentage_dis=cv_text.find(percentage[1])-cv_text.find(percentage[0])-len(percentage[0])
+        percentage_dis = cv_text.find(percentage[1])-cv_text.find(percentage[0])-len(percentage[0])
         #check distance between perc
         if(percentage_dis>5):
-            istable=0
+            istable = 0
         else:
-            istable=1
+            istable = 1
     else:
-        istable=0
+        istable = 0
     #check distance between perc
 
     return istable
@@ -298,16 +300,16 @@ Function to check presence of PG related credentials
 def fun_isPG(cv_text):
 	# loop to match bag of words
 	for j in range(0,len(KeywordsPG['Post Graduation'])):
-		curr_key=KeywordsPG['Post Graduation'][j]
-		result=term_match(cv_text,curr_key)
+		curr_key = KeywordsPG['Post Graduation'][j]
+		result = term_match(cv_text,curr_key)
 		#check if match found
 		if len(result)>0:
 			# checking for persuing appear
 			regular_expression = re.compile('[^a-zA-Z]'+ curr_key +'[^a-zA-Z]', re.IGNORECASE)
 			# result = re.findall(regular_expression, string_to_search)
-			m=re.search(regular_expression, cv_text)
-			pg_pos= m.end()
-			curr_cv_pg=cv_text[max((pg_pos -50),1):min(len(cv_text),pg_pos+300)]
+			m = re.search(regular_expression, cv_text)
+			pg_pos = m.end()
+			curr_cv_pg = cv_text[max((pg_pos -50),1):min(len(cv_text),pg_pos+300)]
 			regular_expression = re.compile(r'(?:pursuing|appear|results awaited|pending)', re.M|re.I)
 			result1 = re.findall(regular_expression, curr_cv_pg)
 			if len(result1)>0:
@@ -602,18 +604,18 @@ def Sales(string_to_search):
 
 ##Parttime
 def Partime(string_to_search,type):
-	keywords=["Part","Distance"]
-	result=[]
-	parttime_pos=0
-	if(type=="PG" and Is_Post_Graduate=="Yes"):
-		parttime_pos= string_to_search.find(Post_Graduate_details_key)
+	keywords = ["Part","Distance"]
+	result = []
+	parttime_pos = 0
+	if(type ==" PG" and Is_Post_Graduate == "Yes"):
+		parttime_pos = string_to_search.find(Post_Graduate_details_key)
 	else:
 		None
-	if(type=="G" and Is_Graduate=="Yes"):
-		parttime_pos= string_to_search.find(Graduate_details_key)
+	if(type == "G" and Is_Graduate == "Yes"):
+		parttime_pos = string_to_search.find(Graduate_details_key)
 	else:
 		None
-	curr_cv=string_to_search
+	curr_cv = string_to_search
 	curr_cv_parttime=curr_cv[max(0,parttime_pos-100):max(len(curr_cv),parttime_pos+100)]
 	parttime="No"
 	if parttime_pos>0:
@@ -634,16 +636,16 @@ def Partime(string_to_search,type):
 def Experience(string_to_search, Is_Post_Graduate, YOB):
 
 	keywords=["Employment detail","Occupation","working with","worked with","Work at","Worked as","Work Exposure","Employed with","Work profile","Company profile","Employment History","Experience"]
-	exp=0
+	exp = 0
 	for i in range(0,len(keywords)):
-		exp_pos=0
+		exp_pos = 0
 		try:
 			# m=re.search(keywords[i], string_to_search,re.IGNORECASE)
 			for m in re.finditer(keywords[i], string_to_search,re.IGNORECASE):
-				exp_pos= m.end()
+				exp_pos = m.end()
 
 				if exp_pos>0:
-					if(i==11): # only for expericnce keyword
+					if(i==11): # only for experience keyword
 						curr_cv=string_to_search
 						curr_cv_exp_before=curr_cv[(exp_pos-150):(exp_pos+10)]
 						regular_expression = re.compile(r'(?:objective)', re.M|re.I)
@@ -676,60 +678,47 @@ def Experience(string_to_search, Is_Post_Graduate, YOB):
 
 	if exp_pos>0 and YOB:
 		regular_expression = re.compile(r'(?:till date|till-date|Present)', re.M|re.I)
-		curr_cv=string_to_search
+		curr_cv = string_to_search
 		curr_cv_exp=curr_cv[exp_pos:min(len(curr_cv),exp_pos+200)]
 		result = re.findall(regular_expression, curr_cv_exp)
 		if result:
-			max_year= 2016
-		# max_year= 2016
+			max_year = int(time.strftime("%Y"))
 		try:
 			regular_expression = re.compile(r'(\d{4})', re.M|re.I)
 			result = re.findall(regular_expression, curr_cv_exp)
-			if max_year != 2016:
-				max_year= max(result)
+			if max_year != int(time.strftime("%Y")):
+				max_year = max(result)
 
 			min_year= int(min(result))
 
-			if(max_year)<2015:
-				max_year=2015
-			if(Is_Post_Graduate=="Yes" and (min_year-YOB)<24):
-				min_year=min_year= YOB+24
-			if(Is_Post_Graduate=="No" and (min_year-YOB)<22):
-				min_year=YOB+ 22
+			if(max_year)<int(time.strftime("%Y"))-2:
+				max_year = int(time.strftime("%Y"))-2
+			if(Is_Post_Graduate == "Yes" and (min_year-YOB)<24):
+				min_year = YOB + 24
+			if(Is_Post_Graduate == "No" and (min_year-YOB)<22):
+				min_year = YOB + 22
 
-			# if ((min_year- YOB)>22) and ((min_year- YOB)<50) :
-				# None
-			# else:
-				# if Is_Post_Graduate=="Yes":
-					# min_year= YOB+24
-				# else:
-					# min_year= YOB+ 22
-			exp= max_year-min_year+1
+			exp = max_year - min_year + 1
 		except:
-			if Is_Post_Graduate=="Yes":
-				exp= 2016- YOB- 24
+			if Is_Post_Graduate == "Yes":
+				exp = int(time.strftime("%Y")) - YOB - 24
 			else:
-
-				exp= 2016- YOB - 22
-		if(exp<=0):
-			exp=1
+				exp = int(time.strftime("%Y")) - YOB - 22
+		if(exp <= 0):
+			exp = 1
 		try:
-			m=re.search('fresher', curr_cv_exp,re.IGNORECASE)
-			fresher=m.end()
-
+			m = re.search('fresher', curr_cv_exp, re.IGNORECASE)
+			fresher = m.end()
 		except:
-			fresher=0
-		if(fresher>0):
-			exp=0
+			fresher = 0
+		if(fresher > 0):
+			exp = 0
 	else:
-		exp=0
-		# if YOB:
-			# if Is_Post_Graduate=="Yes":
-				# exp= 2016- YOB- 24
-			# else:
-				# exp= 2016- YOB - 22
-	if exp>30:
-		exp=0
+		exp = 0
+	
+	if exp > 30:
+		exp = 0
+	
 	return exp
 
 
@@ -765,7 +754,7 @@ Logic: Using PDFMiner and fun is_Grad,
 2. all numbers (2 digits, with/without decimals and not years), with their respective y0 value
 3. find difference of y0 of each number with y0 of degree
 4. the minimum value found, should be returned as the marks
-Note: Regex for marks does not pick "Pass/Appear?Distinction". It only works for marks (numbers), effectively discards year values and picks CGPA as well
+Note: Regex for marks does not pick "Pass/Appear/Distinction". It only works for marks (numbers), effectively discards year values and picks CGPA as well
 """
 def getMarksForGrad(filepath):
 	# Open a file to parse in PDFMiner
