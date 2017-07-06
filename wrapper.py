@@ -242,8 +242,9 @@ df_master["PG_percentage"] = df_master["PG_percentage"].convert_objects(convert_
 df_master["Age"] = int(time.strftime("%Y")) - df_master["YOB"]
 df_master["Age"] = np.where(df_master["Age"]>60,float('nan'),df_master["Age"])
 
-df_master["Marks_Category"] = "Less than 50%"
-df_master["Marks_Category"][df_master["Avg_marks"]>50] = "Equal & Greater than 50%"
+df_master["Marks_Category"]="Marks not available"
+df_master["Marks_Category"][df_master["Avg_marks"]<50] = "Less than 50%"
+df_master["Marks_Category"][df_master["Avg_marks"]>=50] = "Equal & Greater than 50%"
 
 ##calculating experience 
 df_master["Years_Experience"] = np.where(df_master["Years_Experience"]<0,0,df_master["Years_Experience"])
